@@ -13,7 +13,7 @@
       <input type="password" id="password" placeholder="Password" required />
       <button type="submit">Sign Up</button>
     </form>
-    <p>Already have an account? <a href="login.html">Login</a></p>
+    <p>Already have an account? <a href="index.html">Login</a></p>
   </div>
 
   <script>
@@ -29,7 +29,9 @@
         });
         const data = await res.json();
         if (res.ok) {
-        window.location.href = 'genre.html'; // Redirect after signup
+          // **CRUCIAL:** Set the token to mark user as logged in
+          localStorage.setItem('token', 'user-logged-in');
+          window.location.href = 'genre.html';
         } else {
           alert(data.message || 'Signup failed');
         }
