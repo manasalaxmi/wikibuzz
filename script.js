@@ -1,8 +1,11 @@
+// Check authentication and genre selection
+const token = localStorage.getItem('token');
 const genre = localStorage.getItem('selectedGenre') || 'Science';
+if (!token) window.location.href = 'index.html';
+if (!genre) window.location.href = 'genre.html';
+
 const container = document.getElementById('article-container');
 const loader = document.getElementById('loader');
-
-// Display selected genre
 const genreLabel = document.getElementById('genreLabel');
 if (genreLabel) genreLabel.textContent = `Genre: ${genre}`;
 
@@ -13,7 +16,10 @@ async function fetchTrendingArticles() {
     const mm = String(today.getMonth() + 1).padStart(2, '0');
     const dd = String(today.getDate()).padStart(2, '0');
 
-    const trendingRes = await fetch(`https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia/all-access/${yyyy}/${mm}/${dd}`);
+    const trendingRes = await fetch(
+      `https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia/all-access/${yyyy}/${mm}/${dd}`
+    );
+    if (!trendingRes.ok) throw new Error(`HTTP error! status: ${trendingRes.status}`);
     const trendingData = await trendingRes.json();
     const trendingArticles = trendingData.items[0].articles
       .filter(a => !a.article.startsWith('Special:') && a.article !== 'Main_Page')
@@ -23,13 +29,17 @@ async function fetchTrendingArticles() {
       await renderArticleCard(article.article);
     }
   } catch (err) {
-    console.error("Trending fetch failed", err);
+    console.error("Trending fetch failed:", err);
+    container.appendChild(document.createTextNode("Failed to load trending articles."));
   }
 }
 
 async function fetchRelevantArticles() {
   try {
-    const searchRes = await fetch(`https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&list=search&srsearch=${encodeURIComponent(genre)}&srlimit=5`);
+    const searchRes = await fetch(
+      `https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&list=search&srsearch=${encodeURIComponent(genre)}&srlimit=5`
+    );
+    if (!searchRes.ok) throw new Error(`HTTP error! status: ${searchRes.status}`);
     const searchData = await searchRes.json();
     const results = searchData.query.search;
 
@@ -37,13 +47,17 @@ async function fetchRelevantArticles() {
       await renderArticleCard(item.title);
     }
   } catch (err) {
-    console.error("Relevant fetch failed", err);
+    console.error("Relevant fetch failed:", err);
+    container.appendChild(document.createTextNode("Failed to load relevant articles."));
   }
 }
 
 async function renderArticleCard(title) {
   try {
-    const summaryRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`);
+    const summaryRes = await fetch(
+      `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`
+    );
+    if (!summaryRes.ok) throw new Error(`HTTP error! status: ${summaryRes.status}`);
     const summary = await summaryRes.json();
 
     if (!summary || !summary.title || summary.title === 'Not found.') return;
@@ -66,11 +80,19 @@ async function renderArticleCard(title) {
 }
 
 async function loadFeed() {
-  loader.style.display = 'block';
-  await fetchTrendingArticles();
-  await fetchRelevantArticles();
-  loader.style.display = 'none';
+  try {
+    loader.style.display = 'block';
+    container.innerHTML = '';
+    await fetchTrendingArticles();
+    await fetchRelevantArticles();
+  } catch (err) {
+    console.error("Feed loading failed:", err);
+    container.appendChild(document.createTextNode("Failed to load feed."));
+  } finally {
+    loader.style.display = 'none';
+  }
 }
+
 async function handleSearch() {
   const query = document.getElementById('searchInput').value.trim();
   if (!query) return;
@@ -79,7 +101,10 @@ async function handleSearch() {
   loader.style.display = 'block';
 
   try {
-    const res = await fetch(`https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&list=search&srsearch=${encodeURIComponent(query)}&srlimit=10`);
+    const res = await fetch(
+      `https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&list=search&srsearch=${encodeURIComponent(query)}&srlimit=10`
+    );
+    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
     const data = await res.json();
 
     for (let result of data.query.search) {
@@ -87,9 +112,10 @@ async function handleSearch() {
     }
   } catch (error) {
     console.error('Search failed:', error);
+    container.appendChild(document.createTextNode("Search failed."));
+  } finally {
+    loader.style.display = 'none';
   }
-
-  loader.style.display = 'none';
 }
 
 // OPTIONAL: Load current events
