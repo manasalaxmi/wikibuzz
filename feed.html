@@ -5,13 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WikiBuzz Feed</title>
   <link rel="stylesheet" href="style.css" />
-  <script>
-    // Check if user is logged in and has selected a genre
-    const token = localStorage.getItem('token');
-    const selectedGenre = localStorage.getItem('selectedGenre'); // <-- Changed to selectedGenre
-    if (!token) window.location.href = 'index.html';
-    if (!selectedGenre) window.location.href = 'genre.html';
-  </script>
+  <!-- Removed inline script to avoid variable conflicts -->
 </head>
 <body class="dark-theme">
   <header>
