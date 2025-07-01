@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <script>
+  const token = localStorage.getItem('token');
+  if (!token) {
+    window.location.href = 'login.html'; // Require login
+  }
+</script>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WikiBuzz Feed</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="dark-theme">
+
+  <header>
+    <h1 class="feed-title">WikiBuzz Feed</h1>
+    <div class="genre-label" id="genreLabel"></div>
+
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Search Wikipedia..." />
+      <button onclick="handleSearch()">Search</button>
+    </div>
+  </header>
+
+  <div id="article-container"></div>
+  <div id="loader">Loading more...</div>
+
+  <script src="script.js"></script>
+</body>
+</html>
